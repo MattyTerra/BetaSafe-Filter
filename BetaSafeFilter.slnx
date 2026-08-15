@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../../../../../../source/repos/BetaSafeFilter/BetaSafeFilter/BetaSafeFilter.csproj" />
+  <Project Path="../../../../../../source/repos/BetaSafeFilter/BetaSafeFilter/NsfwSharp-main/NsfwSharp/NsfwSharp.csproj" />
+</Solution>

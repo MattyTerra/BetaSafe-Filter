@@ -59,4 +59,3 @@ C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\bin\Debug\net10.0-wind
 C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\bin\Debug\net10.0-windows7.0\erax_nsfw_yolo11m.onnx
 C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\bin\Debug\net10.0-windows7.0\SFWCensor.onnx
 C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\bin\Debug\net10.0-windows7.0\YOLO26SFW.onnx
-C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows7.0\BetaSafeFilter.sourcelink.json

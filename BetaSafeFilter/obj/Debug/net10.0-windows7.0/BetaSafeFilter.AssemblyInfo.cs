@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BetaSafeFilter")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6b6c15f9788bc5e29fc144b00cec44b0a2d43ac4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+14b6903adb1aba0d8857cf04028665b56c7fcef0")]
 [assembly: System.Reflection.AssemblyProductAttribute("BetaSafeFilter")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BetaSafeFilter")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

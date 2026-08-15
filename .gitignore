@@ -1,0 +1,12 @@
+# Visual Studio / build outputs
+.vs/
+**/bin/
+**/obj/
+*.user
+
+
+# Other common generated / temporary files
+**/Old_Models/
+*.suo
+*.userosscache
+*.rsuser
