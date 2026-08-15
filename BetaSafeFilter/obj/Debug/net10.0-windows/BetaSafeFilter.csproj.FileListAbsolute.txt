@@ -1,0 +1,17 @@
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\bin\Debug\net10.0-windows\BetaSafeFilter.exe
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\bin\Debug\net10.0-windows\BetaSafeFilter.deps.json
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\bin\Debug\net10.0-windows\BetaSafeFilter.runtimeconfig.json
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\bin\Debug\net10.0-windows\BetaSafeFilter.dll
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\bin\Debug\net10.0-windows\BetaSafeFilter.pdb
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.Form1.resources
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.csproj.GenerateResource.cache
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.AssemblyInfoInputs.cache
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.AssemblyInfo.cs
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.csproj.CoreCompileInputs.cache
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.dll
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\refint\BetaSafeFilter.dll
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.pdb
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.genruntimeconfig.cache
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\ref\BetaSafeFilter.dll
+C:\Users\matty\source\repos\BetaSafeFilter\BetaSafeFilter\obj\Debug\net10.0-windows\BetaSafeFilter.csproj.AssemblyReference.cache
