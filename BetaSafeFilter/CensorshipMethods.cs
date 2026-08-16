@@ -1,5 +1,4 @@
 ﻿using FFMpegCore;
-//using FFMpegCore.Enums;
 using FFMpegCore.Pipes;
 using NsfwSharp;
 using OpenCvSharp;
@@ -27,7 +26,6 @@ namespace BetaSafeFilter
         private readonly NsfwAnalyzer _analyzer;
         private readonly double _DefaultConfidenceThreshold;
 
-
         //Build the constructor
         public NSFWCensorService(string Model, double DefaultConfidenceThreshold = .20)
         {
@@ -35,12 +33,13 @@ namespace BetaSafeFilter
             _DefaultConfidenceThreshold = DefaultConfidenceThreshold;
         }
 
-        private static Rect ClampRectToFrame(Rect rect, int frameWidth, int frameHeight)
+        private static Rect ClampRectToFrame(Rect rect, int frameWidth, int frameHeight)   
+            //Method to redefine the censor rectangle if it falls outside the boundaries of the photo
         {
             int x = Math.Max(0, rect.X);
             int y = Math.Max(0, rect.Y);
 
-            int right = Math.Min(frameWidth, rect.X + rect.Width);
+            int right = Math.Min(frameWidth, rect.X + rect.Width); 
             int bottom = Math.Min(frameHeight, rect.Y + rect.Height);
 
             int width = Math.Max(0, right - x);
@@ -68,10 +67,8 @@ namespace BetaSafeFilter
                 Cv2.Resize(
                     Frame,
                     analysisMat,
-                    new OpenCvSharp.Size(analysisWidth, analysisHeight),
-                    0,
-                    0,
-                    InterpolationFlags.Linear);
+                    new OpenCvSharp.Size(analysisWidth, analysisHeight)
+                    );
             }
             else
             {
