@@ -10,10 +10,11 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using static System.Windows.Forms.Design.AxImporter;
 
 namespace BetaSafeFilter
 {
-    public enum CensorType
+    public enum CensorType   //censortypes for reference later
     {
         GaussianBlur,
         Pixelate,
@@ -21,10 +22,28 @@ namespace BetaSafeFilter
         SolidColor,
         Test
     }
+
+    public class Options
+    {
+        public Color CensorColor = Color.Black;
+        public int GaussianBlurFactor = 65;
+        public int PixelateFactor = 30;
+
+
+
+        public Options(Color CensorColor = default, int GaussianBlurFactor =65, int PixelateFactor=30)
+        {
+
+            this.CensorColor= CensorColor;
+            this.GaussianBlurFactor= GaussianBlurFactor;
+            this.PixelateFactor = PixelateFactor; 
+        }
+    }
+
     public class NSFWCensorService
     {
-        private readonly NsfwAnalyzer _analyzer;
-        private readonly double _DefaultConfidenceThreshold;
+        private readonly NsfwAnalyzer _analyzer;  //define censorship model used
+        private readonly double _DefaultConfidenceThreshold; //minimum confidence the model required to censor region
 
         //Build the constructor
         public NSFWCensorService(string Model, double DefaultConfidenceThreshold = .20)
@@ -48,7 +67,7 @@ namespace BetaSafeFilter
             return new Rect(x, y, width, height);
         }
 
-        public void CensorMatInPlace(Mat Frame, double k = 1.25, CensorType censorType = CensorType.GaussianBlur, double AnalysisScale=0.5,Scalar? color=null)
+        public void CensorMatInPlace(Mat Frame, Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur, double AnalysisScale=0.5)
         {
             if (Frame == null || Frame.Empty()) { return; }
 
@@ -57,7 +76,7 @@ namespace BetaSafeFilter
             NsfwAnalysis analysis = _analyzer.GetNsfwAnalysis(AnalysisFrame);
             Mat analysisMat;
             
-            if (AnalysisScale < 1.0)
+            if (AnalysisScale < 1.0)  //make image smaller so analysis can be done faster
             {
                 int analysisWidth = Math.Max(1, (int)(Frame.Width * AnalysisScale));
                 int analysisHeight = Math.Max(1, (int)(Frame.Height * AnalysisScale));
@@ -87,20 +106,20 @@ namespace BetaSafeFilter
 
                 censorZone = ClampRectToFrame(censorZone, Frame.Width, Frame.Height);
 
-                if (censorZone.Width <= 0 || censorZone.Height <= 0)
+                if (censorZone.Width <= 0 || censorZone.Height <= 0) //if theres nothing to censor, dont waste time applying a censor
                     continue;
 
-                ApplyCensor(Frame, censorZone, censorType,color);
+                ApplyCensor(Frame, censorZone, censorType,Option);
             }
         }
 
 
-        public Bitmap CensorImage(Bitmap ImagePath, double k = 1.25, CensorType censorType = CensorType.GaussianBlur,Scalar? color=null)
+        public Bitmap CensorImage(Bitmap ImagePath,Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur)
         {
             NsfwAnalysis Analysis = _analyzer.GetNsfwAnalysis(ImagePath);  //set up analyizer
             using (Mat boop2 = OpenCvSharp.Extensions.BitmapConverter.ToMat(ImagePath))
             {
-                CensorMatInPlace(boop2,k,censorType,color: color);
+                CensorMatInPlace(boop2, Option,k, censorType);
                 
                 return OpenCvSharp.Extensions.BitmapConverter.ToBitmap(boop2);
             }
@@ -108,85 +127,8 @@ namespace BetaSafeFilter
 
         }
 
-        public void CensorVideo(String VideoPath, String Framesource, String OutputSource, String Video, double k = 1.25, CensorType censorType = CensorType.GaussianBlur,Scalar? color=null)
+        public void CensorVideoFast(String VideoPath, String Video, Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur)
         {
-            /*Summary
-             * Video Path: Location of the OG Video
-             * Framesource: Location of the Frames that have been Made from the Video
-             * OutputSource: Location of the frames that have been censored 
-             * Video Final Video
-             */
-
-            //Start with a bunch of Error handling. If Paths arent right, throw errors
-            if (string.IsNullOrWhiteSpace(VideoPath))
-                throw new ArgumentException("Video path cannot be empty.");
-
-            if (!File.Exists(VideoPath))
-                throw new FileNotFoundException("Input video not found.", VideoPath);
-
-            if (string.IsNullOrWhiteSpace(Video))
-                throw new ArgumentException("Output video path cannot be empty.");
-
-            // Make sure output has a usable extension
-            if (string.IsNullOrWhiteSpace(Path.GetExtension(Video)))
-                Video = Path.ChangeExtension(Video, ".mp4");
-            //Make the output Path
-
-
-            string outputVideoPath = Path.Combine(Path.GetDirectoryName(OutputSource), @"Frameholder\Censored Video");
-
-
-            ExtractFrames(VideoPath, Framesource); //Takes all the frames and dumps them into the folder
-
-            var frameFiles = Directory.EnumerateFiles(Framesource).ToList();
-
-            var options = new ParallelOptions
-            {
-                MaxDegreeOfParallelism = 8
-            };
-
-
-            Parallel.ForEach(frameFiles, options, FilePath =>
-            {
-                using (Bitmap sourceBitmap = new Bitmap(FilePath))
-                using (Bitmap CensoredFrame = CensorImage(sourceBitmap, k, censorType))
-                {
-                    String CensoredFileName = "CENSORED_" + Path.GetFileName(FilePath);
-                    String SavePath = Path.Combine(OutputSource, CensoredFileName);
-                    CensoredFrame.Save(SavePath, System.Drawing.Imaging.ImageFormat.Png);
-                }
-
-
-            });
-
-            String FramePattern = Path.Combine(OutputSource, @"CENSORED_frame_%04d.png");
-            Debug.WriteLine(FramePattern);
-            FFMpegArguments
-            .FromFileInput(FramePattern, false, input => input
-            .WithCustomArgument("-start_number 0001")
-            .WithFramerate(30)
-            )
-            //.AddInput(originalVideoPath)                    // Add original video for audio TODO
-            .OutputToFile(Video, true, options => options
-                .WithVideoCodec("h264_nvenc")
-                .WithCustomArgument("-preset p5")
-                .WithFramerate(25)
-                .WithConstantRateFactor(18)
-                .WithCustomArgument("-pix_fmt yuv420p")
-                .WithCustomArgument("-movflags +faststart")
-            )
-            .ProcessSynchronously();
-        }
-
-        public void CensorVideoFast(String VideoPath, String Video, double k = 1.25, CensorType censorType = CensorType.GaussianBlur, Scalar? color = null)
-        {
-            /*Summary
-             * Video Path: Location of the OG Video
-             * Framesource: Location of the Frames that have been Made from the Video
-             * OutputSource: Location of the frames that have been censored 
-             * Video Final Video
-             */
-
 
             //Start with Error Handling, If files arent there, throw errors
             if (string.IsNullOrWhiteSpace(VideoPath))
@@ -204,8 +146,6 @@ namespace BetaSafeFilter
 
             Directory.CreateDirectory(Path.GetDirectoryName(Video)!);
 
-
-
             using var capture = new VideoCapture(VideoPath);
 
             if (!capture.IsOpened())
@@ -215,7 +155,8 @@ namespace BetaSafeFilter
             int height = (int)capture.FrameHeight;
             double fps = capture.Fps;
 
-            if (fps <= 0 || double.IsNaN(fps)) { fps = 30; }
+            if (fps <= 0 || double.IsNaN(fps)) //video lacks FPS data assume 30 FPS
+                fps = 30; 
 
             string ffmpegArgs =
                 $"-y " +
@@ -279,7 +220,7 @@ namespace BetaSafeFilter
                 if (mat.Empty())
                     break;
 
-                CensorMatInPlace(mat, k, censorType,0.5,color);
+                CensorMatInPlace(mat,Option, k,censorType);
 
                 WriteBitmapAsBgr24ToStream(mat, ffmpegInput,frameBuffer);
 
@@ -303,7 +244,7 @@ namespace BetaSafeFilter
 
         }
 
-        private void ApplyCensor(Mat Image, Rect Zone, CensorType censorType, Scalar? color = null)
+        private void ApplyCensor(Mat Image, Rect Zone, CensorType censorType, Options Option)
         {
             /* Summary:
              * 
@@ -321,11 +262,11 @@ namespace BetaSafeFilter
                 {
                     case CensorType.GaussianBlur:
                         Cv2.Rectangle(Image, Zone, Scalar.Lime, 2);
-                        Cv2.GaussianBlur(Region, Region, new OpenCvSharp.Size(65, 65), 0);
+                        Cv2.GaussianBlur(Region, Region, new OpenCvSharp.Size(Option.GaussianBlurFactor, Option.GaussianBlurFactor), 0);
                         break;
                     case CensorType.Pixelate:
                         // Define the size of the pixel blocks (larger number = more pixelated)
-                        int pixelSize = 30;
+                        int pixelSize = Option.PixelateFactor;
 
                         // Calculate temporary tiny dimensions (ensure they are at least 1 pixel)
                         int smallW = Math.Max(1, Region.Width / pixelSize);
@@ -349,7 +290,7 @@ namespace BetaSafeFilter
                         break;
                     case CensorType.SolidColor:
 
-                        Scalar chosenColor = color ?? Scalar.Black;
+                        Scalar chosenColor = new Scalar(Option.CensorColor.B, Option.CensorColor.G, Option.CensorColor.R, Option.CensorColor.A); ;
                         Cv2.Rectangle(Image, Zone, chosenColor, Cv2.FILLED);
                         break;
                     default:
