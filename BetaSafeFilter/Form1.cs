@@ -7,7 +7,7 @@ namespace BetaSafeFilter
 {
     public partial class Form1 : Form
     {
-        private string ImageFilePath;
+        private string SourceFilePath;
         private readonly NSFWCensorService _NSFWcensorService;
         private readonly NSFWCensorService _SFWcensorService;
         private readonly string _ProjectRoot = Environment.CurrentDirectory;
@@ -56,13 +56,13 @@ namespace BetaSafeFilter
 
                 if (OFD.ShowDialog() == DialogResult.OK)
                 {
-                    ImageFilePath = OFD.FileName; //Save file location of the new image
+                    SourceFilePath = OFD.FileName; //Save file location of the new image
 
 
                     CensorImg.Image?.Dispose(); //Clear any previous image ?. means if its null nothing happens
                     CensorImg.Image = null; //set Value to Null to avoid any issues
 
-                    FileNameLabel.Text = "Image Loaded: " + System.IO.Path.GetFileName(ImageFilePath);
+                    FileNameLabel.Text = "Image Loaded: " + System.IO.Path.GetFileName(SourceFilePath);
                 }
             }
 
@@ -70,12 +70,12 @@ namespace BetaSafeFilter
 
         private void CensorButton_Click(object sender, EventArgs e)
         {
-            if (String.IsNullOrEmpty(ImageFilePath))
+            if (String.IsNullOrEmpty(SourceFilePath))
             {
                 MessageBox.Show("No File Uploaded", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            Bitmap ImageFile = new Bitmap(ImageFilePath);
+            Bitmap ImageFile = new Bitmap(SourceFilePath);
             CensorButton.Enabled = false;
             CensorImg.Image?.Dispose();
 
@@ -98,13 +98,13 @@ namespace BetaSafeFilter
 
                 if (OFD.ShowDialog() == DialogResult.OK)
                 {
-                    ImageFilePath = OFD.FileName; //Save file location of the new image
+                    SourceFilePath = OFD.FileName; //Save file location of the new image
 
 
                     CensorImg.Image?.Dispose(); //Clear any previous image ?. means if its null nothing happens
                     CensorImg.Image = null; //set Value to Null to avoid any issues
 
-                    FileNameLabel.Text = "Video Loaded: " + System.IO.Path.GetFileName(ImageFilePath);
+                    FileNameLabel.Text = "Video Loaded: " + System.IO.Path.GetFileName(SourceFilePath);
                 }
             }
         }
@@ -112,7 +112,7 @@ namespace BetaSafeFilter
         private void CensorVid_Click(object sender, EventArgs e)
         {
             //start with error handling If no image uploaded, dont even start
-            if (String.IsNullOrEmpty(ImageFilePath))
+            if (String.IsNullOrEmpty(SourceFilePath))
             {
                 MessageBox.Show("Error: No Video Uploaded");
                 return;
@@ -120,18 +120,105 @@ namespace BetaSafeFilter
 
             CensorVid.Enabled = false;
             CensorImg.Image?.Dispose();
+            string SelectedPath;
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                // Optional: Customize the dialog text
+                saveFileDialog.Title = "Select the Location where you want to save Video:";
+                saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                saveFileDialog.Filter = "Video Files (*.mp4)|*.mp4";
+                saveFileDialog.FileName = $"{System.IO.Path.GetFileName(SourceFilePath)} CENSORED";
+                saveFileDialog.FilterIndex = 1;
+                saveFileDialog.RestoreDirectory = true;
 
-            String VideoPath = Path.Combine(_ProjectRoot, @"Frameholder\Video.mp4");
+                // Optional: Set a default starting directory
+                //folderBrowser.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-            if (_CensorsList.Contains("Non-Nude"))
-                _SFWcensorService.CensorVideoFast(ImageFilePath, VideoPath, _Option, censorType: _CensorType);
+                // Show the dialog and check if the user clicked "OK"
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Grab the selected folder path
+                    SelectedPath = saveFileDialog.FileName;
 
-            if (_CensorsList.Contains("Nudes"))
-                _NSFWcensorService.CensorVideoFast(ImageFilePath, VideoPath, _Option, censorType: _CensorType);
+                    // Display it in your TextBox
+                    //txtSaveLocation.Text = selectedPath;
 
-            MessageBox.Show("Complete!");
+                    // You can now use 'selectedPath' to save your files
+                }
+                else
+                {
+                    MessageBox.Show("Error: No File Location Saved");
+                    CensorVid.Enabled = true;
+                    return;
+                }
+            }
+
+
+            string VideoPath = SelectedPath;
+            //String VideoPath = Path.Combine(_ProjectRoot, @"Frameholder\Video.mp4");
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    if (_CensorsList.Contains("Non-Nude"))
+                    {
+                        _SFWcensorService.CensorVideoFast(
+                            SourceFilePath, VideoPath, _Option,
+                            censorType: _CensorType,
+                            progressCallback: AppendProgress);
+                    }
+
+                    if (_CensorsList.Contains("Nudes"))
+                    {
+                        _NSFWcensorService.CensorVideoFast(
+                            SourceFilePath, VideoPath, _Option,
+                            censorType: _CensorType,
+                            progressCallback: AppendProgress);
+                    }
+
+                    // Completion message must also be marshaled
+                    this.BeginInvoke(() =>
+                    {
+                        MessageBox.Show("Complete!");
+                        CensorVid.Enabled = true;
+                    });
+                }
+                catch (Exception ex)
+                {
+                    this.BeginInvoke(() =>
+                    {
+                        MessageBox.Show("Error: " + ex.Message);
+                        CensorVid.Enabled = true;
+                    });
+                }
+            });
+
+
+            //if (_CensorsList.Contains("Non-Nude"))
+            //    _SFWcensorService.CensorVideoFast(ImageFilePath, VideoPath, _Option, censorType: _CensorType, progressCallback: AppendProgress);
+
+            //if (_CensorsList.Contains("Nudes"))
+            //    _NSFWcensorService.CensorVideoFast(ImageFilePath, VideoPath, _Option, censorType: _CensorType, progressCallback: AppendProgress);
+
+            //MessageBox.Show("Complete!");
 
             CensorVid.Enabled = true;
+        }
+
+        private void AppendProgress(string line)
+        {
+            if (string.IsNullOrWhiteSpace(line)) return;
+
+            if (VideoProgress.InvokeRequired)
+            {
+                VideoProgress.BeginInvoke(new Action<string>(AppendProgress), line);
+                return;
+            }
+
+            VideoProgress.Text=line;
+            //.SelectionStart = VideoProgress.Text.Length;
+            //VideoProgress.ScrollToCaret();
         }
 
         private void tabPage1_Click(object sender, EventArgs e)
@@ -154,11 +241,6 @@ namespace BetaSafeFilter
             Debug.WriteLine(_CensorsList.ToString());
         }
 
-        private void groupBox1_Enter(object sender, EventArgs e)
-        {
-
-        }
-
         private void PixelateButton_CheckedChanged(object sender, EventArgs e)
         {
             _CensorType = CensorType.Pixelate;
@@ -176,7 +258,7 @@ namespace BetaSafeFilter
 
         private void PixelationDensity_Scroll(object sender, EventArgs e)
         {
-            _Option = new Options(PixelateFactor: PixelationDensity.Value);
+            _Option.ChangePixelateFactor(PixelateFactor: PixelationDensity.Value);
             PixelLabel.Text = PixelationDensity.Value.ToString();
         }
 
@@ -186,7 +268,22 @@ namespace BetaSafeFilter
             CensorBoxColor.Color = Color.Black;
             if (CensorBoxColor.ShowDialog() == DialogResult.OK)
             {
-                _Option= new Options(CensorColor: CensorBoxColor.Color);
+                _Option.ChangeCensorColor(CensorColor: CensorBoxColor.Color);
+            }
+        }
+
+        private void GaussianBlurrSlider_Scroll(object sender, EventArgs e)
+        {
+            _Option.ChangeGaussianBlurFactor(GaussianBlurFactor: GaussianBlurrSlider.Value);
+            GaussianBlurLabel.Text = GaussianBlurrSlider.Value.ToString();
+        }
+
+        private void SaveButton_Click(object sender, EventArgs e)
+        {
+            if (String.IsNullOrEmpty(SourceFilePath))
+            {
+                MessageBox.Show("No File Uploaded", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
         }
     }

@@ -29,14 +29,27 @@ namespace BetaSafeFilter
         public int GaussianBlurFactor = 65;
         public int PixelateFactor = 30;
 
-
-
         public Options(Color CensorColor = default, int GaussianBlurFactor =65, int PixelateFactor=30)
         {
 
             this.CensorColor= CensorColor;
             this.GaussianBlurFactor= GaussianBlurFactor;
             this.PixelateFactor = PixelateFactor; 
+        }
+
+        public void ChangeCensorColor(Color CensorColor)
+        {
+            this.CensorColor= CensorColor;
+        }
+
+        public void ChangeGaussianBlurFactor(int GaussianBlurFactor)
+        {
+            this.GaussianBlurFactor=GaussianBlurFactor;
+        }
+
+        public void ChangePixelateFactor(int PixelateFactor)
+        {
+            this.PixelateFactor = PixelateFactor;
         }
     }
 
@@ -127,7 +140,7 @@ namespace BetaSafeFilter
 
         }
 
-        public void CensorVideoFast(String VideoPath, String Video, Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur)
+        public void CensorVideoFast(String VideoPath, String Video, Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur, Action<string>? progressCallback = null)
         {
 
             //Start with Error Handling, If files arent there, throw errors
@@ -204,6 +217,7 @@ namespace BetaSafeFilter
             {
                 if (!string.IsNullOrWhiteSpace(e.Data))
                     Debug.WriteLine(e.Data);
+              
             };
 
             ffmpeg.Start();
@@ -228,7 +242,9 @@ namespace BetaSafeFilter
 
                 if (frameNumber % 30 == 0)
                 {
-                    Debug.WriteLine($"Processed {frameNumber} frames...");
+                    string msg = $"Processed {frameNumber} frames...";
+                    Debug.WriteLine(msg);
+                    progressCallback?.Invoke(msg);
                 }
             }
 

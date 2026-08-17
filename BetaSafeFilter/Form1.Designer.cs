@@ -36,7 +36,11 @@
             CensorVid = new Button();
             ImageTab = new TabControl();
             MainPage = new TabPage();
+            SaveButton = new Button();
             SettingsPage = new TabPage();
+            BoxColorButton = new Button();
+            GaussianBlurLabel = new Label();
+            GaussianBlurrSlider = new TrackBar();
             PixelLabel = new Label();
             PixelationDensity = new TrackBar();
             groupBox1 = new GroupBox();
@@ -44,17 +48,15 @@
             CensorBoxButton = new RadioButton();
             BlurButton = new RadioButton();
             CensorsChecklist = new CheckedListBox();
-            GaussianBlurLabel = new Label();
-            GaussianBlurrSlider = new TrackBar();
             CensorBoxColor = new ColorDialog();
-            BoxColorButton = new Button();
+            VideoProgress = new Label();
             ((System.ComponentModel.ISupportInitialize)CensorImg).BeginInit();
             ImageTab.SuspendLayout();
             MainPage.SuspendLayout();
             SettingsPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)GaussianBlurrSlider).BeginInit();
             ((System.ComponentModel.ISupportInitialize)PixelationDensity).BeginInit();
             groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)GaussianBlurrSlider).BeginInit();
             SuspendLayout();
             // 
             // UploadButton
@@ -69,7 +71,7 @@
             // 
             // CensorImg
             // 
-            CensorImg.Location = new Point(380, 26);
+            CensorImg.Location = new Point(401, 22);
             CensorImg.Name = "CensorImg";
             CensorImg.Size = new Size(640, 480);
             CensorImg.SizeMode = PictureBoxSizeMode.Zoom;
@@ -97,7 +99,7 @@
             // 
             // VidButton
             // 
-            VidButton.Location = new Point(56, 217);
+            VidButton.Location = new Point(56, 350);
             VidButton.Name = "VidButton";
             VidButton.Size = new Size(213, 41);
             VidButton.TabIndex = 5;
@@ -107,7 +109,7 @@
             // 
             // CensorVid
             // 
-            CensorVid.Location = new Point(56, 301);
+            CensorVid.Location = new Point(56, 434);
             CensorVid.Name = "CensorVid";
             CensorVid.Size = new Size(213, 44);
             CensorVid.TabIndex = 6;
@@ -119,15 +121,17 @@
             // 
             ImageTab.Controls.Add(MainPage);
             ImageTab.Controls.Add(SettingsPage);
-            ImageTab.Location = new Point(0, 1);
+            ImageTab.Location = new Point(2, 2);
             ImageTab.Name = "ImageTab";
             ImageTab.SelectedIndex = 0;
-            ImageTab.Size = new Size(1071, 560);
+            ImageTab.Size = new Size(1082, 554);
             ImageTab.TabIndex = 7;
             ImageTab.SelectedIndexChanged += ImageTab_SelectedIndexChanged;
             // 
             // MainPage
             // 
+            MainPage.Controls.Add(VideoProgress);
+            MainPage.Controls.Add(SaveButton);
             MainPage.Controls.Add(UploadButton);
             MainPage.Controls.Add(CensorImg);
             MainPage.Controls.Add(CensorVid);
@@ -137,10 +141,20 @@
             MainPage.Location = new Point(4, 24);
             MainPage.Name = "MainPage";
             MainPage.Padding = new Padding(3);
-            MainPage.Size = new Size(1063, 532);
+            MainPage.Size = new Size(1074, 526);
             MainPage.TabIndex = 0;
             MainPage.Text = "Image Censor";
             MainPage.UseVisualStyleBackColor = true;
+            // 
+            // SaveButton
+            // 
+            SaveButton.Location = new Point(51, 241);
+            SaveButton.Name = "SaveButton";
+            SaveButton.Size = new Size(218, 50);
+            SaveButton.TabIndex = 7;
+            SaveButton.Text = "Save Censored Image";
+            SaveButton.UseVisualStyleBackColor = true;
+            SaveButton.Click += SaveButton_Click;
             // 
             // SettingsPage
             // 
@@ -154,19 +168,50 @@
             SettingsPage.Location = new Point(4, 24);
             SettingsPage.Name = "SettingsPage";
             SettingsPage.Padding = new Padding(3);
-            SettingsPage.Size = new Size(1063, 532);
+            SettingsPage.Size = new Size(1074, 526);
             SettingsPage.TabIndex = 1;
             SettingsPage.Text = "Settings";
             SettingsPage.UseVisualStyleBackColor = true;
+            // 
+            // BoxColorButton
+            // 
+            BoxColorButton.Location = new Point(231, 237);
+            BoxColorButton.Name = "BoxColorButton";
+            BoxColorButton.Size = new Size(200, 28);
+            BoxColorButton.TabIndex = 14;
+            BoxColorButton.Text = "Click for censor color select";
+            BoxColorButton.UseVisualStyleBackColor = true;
+            BoxColorButton.Click += BoxColorButton_Click;
+            // 
+            // GaussianBlurLabel
+            // 
+            GaussianBlurLabel.AutoSize = true;
+            GaussianBlurLabel.Location = new Point(433, 181);
+            GaussianBlurLabel.Name = "GaussianBlurLabel";
+            GaussianBlurLabel.Size = new Size(19, 15);
+            GaussianBlurLabel.TabIndex = 13;
+            GaussianBlurLabel.Text = "65";
+            // 
+            // GaussianBlurrSlider
+            // 
+            GaussianBlurrSlider.Location = new Point(238, 180);
+            GaussianBlurrSlider.Maximum = 100;
+            GaussianBlurrSlider.Name = "GaussianBlurrSlider";
+            GaussianBlurrSlider.Size = new Size(189, 45);
+            GaussianBlurrSlider.TabIndex = 12;
+            GaussianBlurrSlider.TabStop = false;
+            GaussianBlurrSlider.TickStyle = TickStyle.None;
+            GaussianBlurrSlider.Value = 30;
+            GaussianBlurrSlider.Scroll += GaussianBlurrSlider_Scroll;
             // 
             // PixelLabel
             // 
             PixelLabel.AutoSize = true;
             PixelLabel.Location = new Point(433, 130);
             PixelLabel.Name = "PixelLabel";
-            PixelLabel.Size = new Size(38, 15);
+            PixelLabel.Size = new Size(19, 15);
             PixelLabel.TabIndex = 11;
-            PixelLabel.Text = "label1";
+            PixelLabel.Text = "30";
             // 
             // PixelationDensity
             // 
@@ -191,7 +236,6 @@
             groupBox1.TabIndex = 9;
             groupBox1.TabStop = false;
             groupBox1.Text = "groupBox1";
-            groupBox1.Enter += groupBox1_Enter;
             // 
             // PixelateButton
             // 
@@ -238,35 +282,14 @@
             CensorsChecklist.TabIndex = 4;
             CensorsChecklist.SelectedIndexChanged += CensorsChecklist_SelectedIndexChanged;
             // 
-            // GaussianBlurLabel
+            // VideoProgress
             // 
-            GaussianBlurLabel.AutoSize = true;
-            GaussianBlurLabel.Location = new Point(433, 181);
-            GaussianBlurLabel.Name = "GaussianBlurLabel";
-            GaussianBlurLabel.Size = new Size(38, 15);
-            GaussianBlurLabel.TabIndex = 13;
-            GaussianBlurLabel.Text = "label1";
-            // 
-            // GaussianBlurrSlider
-            // 
-            GaussianBlurrSlider.Location = new Point(238, 180);
-            GaussianBlurrSlider.Maximum = 100;
-            GaussianBlurrSlider.Name = "GaussianBlurrSlider";
-            GaussianBlurrSlider.Size = new Size(189, 45);
-            GaussianBlurrSlider.TabIndex = 12;
-            GaussianBlurrSlider.TabStop = false;
-            GaussianBlurrSlider.TickStyle = TickStyle.None;
-            GaussianBlurrSlider.Value = 30;
-            // 
-            // BoxColorButton
-            // 
-            BoxColorButton.Location = new Point(231, 237);
-            BoxColorButton.Name = "BoxColorButton";
-            BoxColorButton.Size = new Size(200, 28);
-            BoxColorButton.TabIndex = 14;
-            BoxColorButton.Text = "Click for censor color select";
-            BoxColorButton.UseVisualStyleBackColor = true;
-            BoxColorButton.Click += BoxColorButton_Click;
+            VideoProgress.AutoSize = true;
+            VideoProgress.Location = new Point(283, 451);
+            VideoProgress.Name = "VideoProgress";
+            VideoProgress.Size = new Size(80, 15);
+            VideoProgress.TabIndex = 8;
+            VideoProgress.Text = "Progress: N/A";
             // 
             // Form1
             // 
@@ -283,10 +306,10 @@
             MainPage.PerformLayout();
             SettingsPage.ResumeLayout(false);
             SettingsPage.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)GaussianBlurrSlider).EndInit();
             ((System.ComponentModel.ISupportInitialize)PixelationDensity).EndInit();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)GaussianBlurrSlider).EndInit();
             ResumeLayout(false);
         }
 
@@ -312,5 +335,7 @@
         private TrackBar GaussianBlurrSlider;
         private ColorDialog CensorBoxColor;
         private Button BoxColorButton;
+        private Button SaveButton;
+        private Label VideoProgress;
     }
 }
