@@ -20,21 +20,25 @@ namespace BetaSafeFilter
         Pixelate,
         CensoredLogo,
         SolidColor,
+        TVStatic,
         Test
     }
 
     public class Options
     {
-        public Color CensorColor = Color.Black;
-        public int GaussianBlurFactor = 65;
-        public int PixelateFactor = 30;
+        public Color CensorColor;
+        public int GaussianBlurFactor;
+        public int PixelateFactor;
 
-        public Options(Color CensorColor = default, int GaussianBlurFactor =65, int PixelateFactor=30)
+        public int TVstatic;
+
+        public Options(Color CensorColor = default, int GaussianBlurFactor =65, int PixelateFactor=30, int TVstatic=30)
         {
 
             this.CensorColor= CensorColor;
             this.GaussianBlurFactor= GaussianBlurFactor;
-            this.PixelateFactor = PixelateFactor; 
+            this.PixelateFactor = PixelateFactor;
+            this.TVstatic = TVstatic;
         }
 
         public void ChangeCensorColor(Color CensorColor)
@@ -50,6 +54,10 @@ namespace BetaSafeFilter
         public void ChangePixelateFactor(int PixelateFactor)
         {
             this.PixelateFactor = PixelateFactor;
+        }
+        public void ChangeTVStatic(int TVstatic)
+        {
+            this.TVstatic = TVstatic;
         }
     }
 
@@ -305,10 +313,25 @@ namespace BetaSafeFilter
                         //Make This Later
                         break;
                     case CensorType.SolidColor:
-
                         Scalar chosenColor = new Scalar(Option.CensorColor.B, Option.CensorColor.G, Option.CensorColor.R, Option.CensorColor.A); ;
                         Cv2.Rectangle(Image, Zone, chosenColor, Cv2.FILLED);
                         break;
+                    case CensorType.TVStatic:
+
+                        pixelSize = Option.TVstatic;
+                        smallW = Math.Max(1, Region.Width / pixelSize);
+                        smallH = Math.Max(1, Region.Height / pixelSize);
+                        smallSize = new OpenCvSharp.Size(smallW, smallH);
+                        originalSize = new OpenCvSharp.Size(Region.Width, Region.Height);
+
+                        using (Mat smallRegion = new Mat(smallSize,Region.Type()))
+                        {
+                            Cv2.Randu(smallRegion, 0, 255); //apply static fitler
+                            Cv2.Resize(smallRegion, Region, originalSize, 0, 0, InterpolationFlags.Nearest);  //enlarge region
+                            //TODO: Look into a way to add some transparentcy maybe? 
+                        }
+                        break;
+                    
                     default:
                         Cv2.Rectangle(Image, Zone, Scalar.HotPink);
                         break;

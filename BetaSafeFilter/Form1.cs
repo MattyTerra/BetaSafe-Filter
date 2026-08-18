@@ -2,6 +2,7 @@ using NsfwSharp;
 using OpenCvSharp;
 using SkiaSharp;
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace BetaSafeFilter
 {
@@ -31,7 +32,7 @@ namespace BetaSafeFilter
 
             foreach (object Selection in CensorsChecklist.CheckedItems)
             {
-                _CensorsList.Add(Selection.ToString());
+                _CensorsList.Add(item: Selection.ToString());
             }
             PixelLabel.Text = PixelationDensity.Value.ToString();
 
@@ -85,6 +86,7 @@ namespace BetaSafeFilter
                 ImageFile = _NSFWcensorService.CensorImage(ImageFile, _Option, censorType: _CensorType);
 
             CensorImg.Image = ImageFile;
+            CensorImg.AccessibleName = "File Loaded";
             CensorButton.Enabled = true;
         }
 
@@ -127,7 +129,7 @@ namespace BetaSafeFilter
                 saveFileDialog.Title = "Select the Location where you want to save Video:";
                 saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 saveFileDialog.Filter = "Video Files (*.mp4)|*.mp4";
-                saveFileDialog.FileName = $"{System.IO.Path.GetFileName(SourceFilePath)} CENSORED";
+                saveFileDialog.FileName = $"{System.IO.Path.GetFileNameWithoutExtension(SourceFilePath)} CENSORED";
                 saveFileDialog.FilterIndex = 1;
                 saveFileDialog.RestoreDirectory = true;
 
@@ -194,15 +196,6 @@ namespace BetaSafeFilter
                 }
             });
 
-
-            //if (_CensorsList.Contains("Non-Nude"))
-            //    _SFWcensorService.CensorVideoFast(ImageFilePath, VideoPath, _Option, censorType: _CensorType, progressCallback: AppendProgress);
-
-            //if (_CensorsList.Contains("Nudes"))
-            //    _NSFWcensorService.CensorVideoFast(ImageFilePath, VideoPath, _Option, censorType: _CensorType, progressCallback: AppendProgress);
-
-            //MessageBox.Show("Complete!");
-
             CensorVid.Enabled = true;
         }
 
@@ -216,19 +209,7 @@ namespace BetaSafeFilter
                 return;
             }
 
-            VideoProgress.Text=line;
-            //.SelectionStart = VideoProgress.Text.Length;
-            //VideoProgress.ScrollToCaret();
-        }
-
-        private void tabPage1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void ImageTab_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
+            VideoProgress.Text = line;
         }
 
         private void CensorsChecklist_SelectedIndexChanged(object sender, EventArgs e)
@@ -256,6 +237,11 @@ namespace BetaSafeFilter
             _CensorType = CensorType.GaussianBlur;
         }
 
+        private void StaticBox_CheckedChanged(object sender, EventArgs e)
+        {
+            _CensorType = CensorType.TVStatic;
+        }
+
         private void PixelationDensity_Scroll(object sender, EventArgs e)
         {
             _Option.ChangePixelateFactor(PixelateFactor: PixelationDensity.Value);
@@ -280,11 +266,51 @@ namespace BetaSafeFilter
 
         private void SaveButton_Click(object sender, EventArgs e)
         {
-            if (String.IsNullOrEmpty(SourceFilePath))
+            //CensorImg.
+            if (String.IsNullOrEmpty(CensorImg.AccessibleName))
             {
-                MessageBox.Show("No File Uploaded", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("No File Uploaded or Image has not been Censored yet", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            string SelectedPath;
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+
+                // Optional: Customize the dialog text
+                saveFileDialog.Title = "Select the Location where you want to save Photo:";
+                saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                saveFileDialog.Filter = "Image Files (*.jpg; *.jpeg; *.png; *.bmp; *.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif";
+                saveFileDialog.FileName = $"{System.IO.Path.GetFileNameWithoutExtension(SourceFilePath)} CENSORED";
+                saveFileDialog.FilterIndex = 1;
+                saveFileDialog.RestoreDirectory = true;
+
+                // Optional: Set a default starting directory
+                //folderBrowser.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+                // Show the dialog and check if the user clicked "OK"
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Grab the selected folder path
+                    SelectedPath = saveFileDialog.FileName;
+
+                    // Display it in your TextBox
+                    //txtSaveLocation.Text = selectedPath;
+                    CensorImg.Image.Save(SelectedPath);
+                }
+                else
+                {
+                    MessageBox.Show("Error: No File Location Saved");
+                    return;
+                }
+
+            }
         }
+
+        private void ImageTab_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+
     }
 }

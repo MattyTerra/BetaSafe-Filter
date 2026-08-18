@@ -36,6 +36,9 @@
             CensorVid = new Button();
             ImageTab = new TabControl();
             MainPage = new TabPage();
+            button2 = new Button();
+            button1 = new Button();
+            VideoProgress = new Label();
             SaveButton = new Button();
             SettingsPage = new TabPage();
             BoxColorButton = new Button();
@@ -44,12 +47,12 @@
             PixelLabel = new Label();
             PixelationDensity = new TrackBar();
             groupBox1 = new GroupBox();
+            StaticBox = new RadioButton();
             PixelateButton = new RadioButton();
             CensorBoxButton = new RadioButton();
             BlurButton = new RadioButton();
             CensorsChecklist = new CheckedListBox();
             CensorBoxColor = new ColorDialog();
-            VideoProgress = new Label();
             ((System.ComponentModel.ISupportInitialize)CensorImg).BeginInit();
             ImageTab.SuspendLayout();
             MainPage.SuspendLayout();
@@ -71,7 +74,7 @@
             // 
             // CensorImg
             // 
-            CensorImg.Location = new Point(401, 22);
+            CensorImg.Location = new Point(398, 6);
             CensorImg.Name = "CensorImg";
             CensorImg.Size = new Size(640, 480);
             CensorImg.SizeMode = PictureBoxSizeMode.Zoom;
@@ -130,6 +133,8 @@
             // 
             // MainPage
             // 
+            MainPage.Controls.Add(button2);
+            MainPage.Controls.Add(button1);
             MainPage.Controls.Add(VideoProgress);
             MainPage.Controls.Add(SaveButton);
             MainPage.Controls.Add(UploadButton);
@@ -145,6 +150,33 @@
             MainPage.TabIndex = 0;
             MainPage.Text = "Image Censor";
             MainPage.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            button2.Location = new Point(673, 494);
+            button2.Name = "button2";
+            button2.Size = new Size(75, 23);
+            button2.TabIndex = 10;
+            button2.Text = "Forwards";
+            button2.UseVisualStyleBackColor = true;
+            // 
+            // button1
+            // 
+            button1.Location = new Point(580, 494);
+            button1.Name = "button1";
+            button1.Size = new Size(75, 23);
+            button1.TabIndex = 9;
+            button1.Text = "Backwards";
+            button1.UseVisualStyleBackColor = true;
+            // 
+            // VideoProgress
+            // 
+            VideoProgress.AutoSize = true;
+            VideoProgress.Location = new Point(283, 451);
+            VideoProgress.Name = "VideoProgress";
+            VideoProgress.Size = new Size(80, 15);
+            VideoProgress.TabIndex = 8;
+            VideoProgress.Text = "Progress: N/A";
             // 
             // SaveButton
             // 
@@ -227,6 +259,7 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(StaticBox);
             groupBox1.Controls.Add(PixelateButton);
             groupBox1.Controls.Add(CensorBoxButton);
             groupBox1.Controls.Add(BlurButton);
@@ -236,6 +269,17 @@
             groupBox1.TabIndex = 9;
             groupBox1.TabStop = false;
             groupBox1.Text = "groupBox1";
+            // 
+            // StaticBox
+            // 
+            StaticBox.AutoSize = true;
+            StaticBox.Location = new Point(6, 172);
+            StaticBox.Name = "StaticBox";
+            StaticBox.Size = new Size(54, 19);
+            StaticBox.TabIndex = 9;
+            StaticBox.Text = "Static";
+            StaticBox.UseVisualStyleBackColor = true;
+            StaticBox.CheckedChanged += StaticBox_CheckedChanged;
             // 
             // PixelateButton
             // 
@@ -281,15 +325,6 @@
             CensorsChecklist.Size = new Size(156, 40);
             CensorsChecklist.TabIndex = 4;
             CensorsChecklist.SelectedIndexChanged += CensorsChecklist_SelectedIndexChanged;
-            // 
-            // VideoProgress
-            // 
-            VideoProgress.AutoSize = true;
-            VideoProgress.Location = new Point(283, 451);
-            VideoProgress.Name = "VideoProgress";
-            VideoProgress.Size = new Size(80, 15);
-            VideoProgress.TabIndex = 8;
-            VideoProgress.Text = "Progress: N/A";
             // 
             // Form1
             // 
@@ -337,5 +372,8 @@
         private Button BoxColorButton;
         private Button SaveButton;
         private Label VideoProgress;
+        private Button button1;
+        private Button button2;
+        private RadioButton StaticBox;
     }
 }
