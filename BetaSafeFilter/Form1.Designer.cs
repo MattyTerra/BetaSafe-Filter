@@ -319,8 +319,8 @@
             // 
             CensorsChecklist.CheckOnClick = true;
             CensorsChecklist.FormattingEnabled = true;
-            CensorsChecklist.Items.AddRange(new object[] { "Nudes", "Non-Nude" });
-            CensorsChecklist.Location = new Point(25, 40);
+            CensorsChecklist.Items.AddRange(new object[] { "Nudes", "Lewds" });
+            CensorsChecklist.Location = new Point(730, 83);
             CensorsChecklist.Name = "CensorsChecklist";
             CensorsChecklist.Size = new Size(156, 40);
             CensorsChecklist.TabIndex = 4;
