@@ -319,10 +319,10 @@
             // 
             CensorsChecklist.CheckOnClick = true;
             CensorsChecklist.FormattingEnabled = true;
-            CensorsChecklist.Items.AddRange(new object[] { "Nudes", "Lewds" });
-            CensorsChecklist.Location = new Point(730, 83);
+            CensorsChecklist.Items.AddRange(new object[] { "Breasts", "Cleavage", "Face", "Panties", "Penis", "Sex", "Vagina" });
+            CensorsChecklist.Location = new Point(25, 327);
             CensorsChecklist.Name = "CensorsChecklist";
-            CensorsChecklist.Size = new Size(156, 40);
+            CensorsChecklist.Size = new Size(156, 148);
             CensorsChecklist.TabIndex = 4;
             CensorsChecklist.SelectedIndexChanged += CensorsChecklist_SelectedIndexChanged;
             // 

@@ -41,13 +41,13 @@ namespace BetaSafeFilter
             return new Rect(x, y, width, height);
         }
 
-        public void CensorMatInPlace(Mat Frame, Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur, double AnalysisScale=0.5)
+        public void CensorMatInPlace(Mat Frame, Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur, double AnalysisScale = 0.5, List<string> Categories = null)
         {
             if (Frame == null || Frame.Empty()) { return; }
 
             using Bitmap AnalysisFrame = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(Frame);
 
-            NsfwAnalysis analysis = _analyzer.GetNsfwAnalysis(AnalysisFrame);
+            NsfwAnalysis analysis = _analyzer.GetNsfwAnalysis(AnalysisFrame,Categories);
             Mat analysisMat;
             
             if (AnalysisScale < 1.0)  //make image smaller so analysis can be done faster
@@ -82,18 +82,19 @@ namespace BetaSafeFilter
 
                 if (censorZone.Width <= 0 || censorZone.Height <= 0) //if theres nothing to censor, dont waste time applying a censor
                     continue;
-
+                
                 ApplyCensor(Frame, censorZone, censorType,Option);
             }
         }
 
 
-        public Bitmap CensorImage(Bitmap ImagePath,Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur)
+        public Bitmap CensorImage(Bitmap ImagePath, Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur, List<string> Categories=null)
         {
-            NsfwAnalysis Analysis = _analyzer.GetNsfwAnalysis(ImagePath);  //set up analyizer
+            Categories ??= new List<string>();
+            NsfwAnalysis Analysis = _analyzer.GetNsfwAnalysis(ImagePath,Categories);  //set up analyizer
             using (Mat boop2 = OpenCvSharp.Extensions.BitmapConverter.ToMat(ImagePath))
             {
-                CensorMatInPlace(boop2, Option,k, censorType);
+                CensorMatInPlace(boop2, Option,k, censorType,Categories:Categories);
                 
                 return OpenCvSharp.Extensions.BitmapConverter.ToBitmap(boop2);
             }
@@ -101,7 +102,7 @@ namespace BetaSafeFilter
 
         }
 
-        public void CensorVideoFast(String VideoPath, String Video, Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur, Action<string>? progressCallback = null)
+        public void CensorVideoFast(String VideoPath, String Video, Options Option, double k = 1.25, CensorType censorType = CensorType.GaussianBlur, Action<string>? progressCallback = null,List <String> Categories=null)
         {
 
             //Start with Error Handling, If files arent there, throw errors
@@ -195,7 +196,7 @@ namespace BetaSafeFilter
                 if (mat.Empty())
                     break;
 
-                CensorMatInPlace(mat,Option, k,censorType);
+                CensorMatInPlace(mat,Option, k,censorType,Categories:Categories);
 
                 WriteBitmapAsBgr24ToStream(mat, ffmpegInput,frameBuffer);
 

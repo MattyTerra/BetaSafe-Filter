@@ -27,18 +27,18 @@ namespace BetaSafeFilter
             for (int i = 0; i < CensorsChecklist.Items.Count; i++)
             {
                 CensorsChecklist.SetItemChecked(i, true);
-                _CensorsList.Add(CensorsChecklist.Items[i].ToString());
+                //_CensorsList.Add(CensorsChecklist.Items[i].ToString().ToUpper());
             }
 
             foreach (object Selection in CensorsChecklist.CheckedItems)
             {
-                _CensorsList.Add(item: Selection.ToString());
+                _CensorsList.Add(item: Selection.ToString().ToUpper());
             }
             PixelLabel.Text = PixelationDensity.Value.ToString();
 
             //_censorService = new NSFWCensorService(@"erax_nsfw_yolo11m.onnx", 0.20);
             _NSFWcensorService = new NSFWCensorService(@"erax_nsfw_yolo11m.onnx", .20);
-            _SFWcensorService = new NSFWCensorService(@"YOLO26SFW.onnx", .20);
+            _SFWcensorService = new NSFWCensorService(@"YOLO26SFWV2.onnx", .20);
             _ProjectRoot = Environment.CurrentDirectory;
         }
 
@@ -76,14 +76,13 @@ namespace BetaSafeFilter
                 MessageBox.Show("No File Uploaded", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);  //Throw error if no image uploaded
                 return;
             }
+
+            //Debug.WriteLine(string.Join(",",_CensorsList));
             Bitmap ImageFile = new Bitmap(SourceFilePath); 
             CensorButton.Enabled = false;
             CensorImg.Image?.Dispose();
 
-            if (_CensorsList.Contains("Lewds")) //TODO make this change with options name later
-                ImageFile = _SFWcensorService.CensorImage(ImageFile, _Option, censorType: _CensorType);  
-            if (_CensorsList.Contains("Nudes")) //TODO make this change with options name later
-                ImageFile = _NSFWcensorService.CensorImage(ImageFile, _Option, censorType: _CensorType);
+            ImageFile = _SFWcensorService.CensorImage(ImageFile, _Option, censorType: _CensorType,Categories: _CensorsList);
 
             CensorImg.Image = ImageFile;
             CensorImg.AccessibleName = "File Loaded";
@@ -154,8 +153,6 @@ namespace BetaSafeFilter
                     return;
                 }
             }
-
-
             string VideoPath = SelectedPath;
             //String VideoPath = Path.Combine(_ProjectRoot, @"Frameholder\Video.mp4");
 
@@ -163,21 +160,12 @@ namespace BetaSafeFilter
             {
                 try
                 {
-                    if (_CensorsList.Contains("Lewds"))
-                    {
-                        _SFWcensorService.CensorVideoFast(
-                            SourceFilePath, VideoPath, _Option,
-                            censorType: _CensorType,
-                            progressCallback: AppendProgress);
-                    }
+                  
+                    _SFWcensorService.CensorVideoFast(
+                        SourceFilePath, VideoPath, _Option,
+                        censorType: _CensorType,
+                        progressCallback: AppendProgress,Categories: _CensorsList);
 
-                    if (_CensorsList.Contains("Nudes"))
-                    {
-                        _NSFWcensorService.CensorVideoFast(
-                            SourceFilePath, VideoPath, _Option,
-                            censorType: _CensorType,
-                            progressCallback: AppendProgress);
-                    }
 
                     // Completion message must also be marshaled
                     this.BeginInvoke(() =>
@@ -217,7 +205,7 @@ namespace BetaSafeFilter
             _CensorsList.Clear();
             foreach (object Selection in CensorsChecklist.CheckedItems)
             {
-                _CensorsList.Add(Selection.ToString());
+                _CensorsList.Add(Selection.ToString().ToUpper());
             }
             Debug.WriteLine(_CensorsList.ToString());
         }

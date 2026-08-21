@@ -31,6 +31,9 @@
     <None Update="YOLO26SFW.onnx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="YOLO26SFWV2.onnx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="yolov8s-pose.onnx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
