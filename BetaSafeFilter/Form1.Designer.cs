@@ -36,6 +36,7 @@
             CensorVid = new Button();
             ImageTab = new TabControl();
             MainPage = new TabPage();
+            RTCButton = new Button();
             button2 = new Button();
             button1 = new Button();
             VideoProgress = new Label();
@@ -102,7 +103,7 @@
             // 
             // VidButton
             // 
-            VidButton.Location = new Point(56, 350);
+            VidButton.Location = new Point(56, 270);
             VidButton.Name = "VidButton";
             VidButton.Size = new Size(213, 41);
             VidButton.TabIndex = 5;
@@ -112,7 +113,7 @@
             // 
             // CensorVid
             // 
-            CensorVid.Location = new Point(56, 434);
+            CensorVid.Location = new Point(56, 335);
             CensorVid.Name = "CensorVid";
             CensorVid.Size = new Size(213, 44);
             CensorVid.TabIndex = 6;
@@ -133,6 +134,7 @@
             // 
             // MainPage
             // 
+            MainPage.Controls.Add(RTCButton);
             MainPage.Controls.Add(button2);
             MainPage.Controls.Add(button1);
             MainPage.Controls.Add(VideoProgress);
@@ -150,6 +152,16 @@
             MainPage.TabIndex = 0;
             MainPage.Text = "Image Censor";
             MainPage.UseVisualStyleBackColor = true;
+            // 
+            // RTCButton
+            // 
+            RTCButton.Location = new Point(56, 406);
+            RTCButton.Name = "RTCButton";
+            RTCButton.Size = new Size(213, 44);
+            RTCButton.TabIndex = 11;
+            RTCButton.Text = "Realtime Censorship";
+            RTCButton.UseVisualStyleBackColor = true;
+            RTCButton.Click += this.RTCButton_Click;
             // 
             // button2
             // 
@@ -172,7 +184,7 @@
             // VideoProgress
             // 
             VideoProgress.AutoSize = true;
-            VideoProgress.Location = new Point(283, 451);
+            VideoProgress.Location = new Point(286, 350);
             VideoProgress.Name = "VideoProgress";
             VideoProgress.Size = new Size(80, 15);
             VideoProgress.TabIndex = 8;
@@ -180,9 +192,9 @@
             // 
             // SaveButton
             // 
-            SaveButton.Location = new Point(51, 241);
+            SaveButton.Location = new Point(51, 197);
             SaveButton.Name = "SaveButton";
-            SaveButton.Size = new Size(218, 50);
+            SaveButton.Size = new Size(218, 47);
             SaveButton.TabIndex = 7;
             SaveButton.Text = "Save Censored Image";
             SaveButton.UseVisualStyleBackColor = true;
@@ -227,13 +239,15 @@
             // GaussianBlurrSlider
             // 
             GaussianBlurrSlider.Location = new Point(238, 180);
-            GaussianBlurrSlider.Maximum = 100;
+            GaussianBlurrSlider.Maximum = 101;
+            GaussianBlurrSlider.Minimum = 1;
             GaussianBlurrSlider.Name = "GaussianBlurrSlider";
             GaussianBlurrSlider.Size = new Size(189, 45);
             GaussianBlurrSlider.TabIndex = 12;
             GaussianBlurrSlider.TabStop = false;
+            GaussianBlurrSlider.TickFrequency = 2;
             GaussianBlurrSlider.TickStyle = TickStyle.None;
-            GaussianBlurrSlider.Value = 30;
+            GaussianBlurrSlider.Value = 65;
             GaussianBlurrSlider.Scroll += GaussianBlurrSlider_Scroll;
             // 
             // PixelLabel
@@ -319,10 +333,10 @@
             // 
             CensorsChecklist.CheckOnClick = true;
             CensorsChecklist.FormattingEnabled = true;
-            CensorsChecklist.Items.AddRange(new object[] { "Breasts", "Cleavage", "Face", "Panties", "Penis", "Sex", "Vagina" });
+            CensorsChecklist.Items.AddRange(new object[] { "Face", "Cleavage", "Penis", "Panties", "Breasts", "Ass", "Sex", "Vagina", "Chastity" });
             CensorsChecklist.Location = new Point(25, 327);
             CensorsChecklist.Name = "CensorsChecklist";
-            CensorsChecklist.Size = new Size(156, 148);
+            CensorsChecklist.Size = new Size(156, 166);
             CensorsChecklist.TabIndex = 4;
             CensorsChecklist.SelectedIndexChanged += CensorsChecklist_SelectedIndexChanged;
             // 
@@ -334,7 +348,6 @@
             Controls.Add(ImageTab);
             Name = "Form1";
             Text = "BetaSafeFilter";
-            Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)CensorImg).EndInit();
             ImageTab.ResumeLayout(false);
             MainPage.ResumeLayout(false);
@@ -375,5 +388,6 @@
         private Button button1;
         private Button button2;
         private RadioButton StaticBox;
+        private Button RTCButton;
     }
 }

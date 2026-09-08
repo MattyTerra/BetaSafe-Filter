@@ -1,17 +1,21 @@
 using NsfwSharp;
 using OpenCvSharp;
+using OpenCvSharp.Dnn;
 using SkiaSharp;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using YoloDotNet.Video;
 
 namespace BetaSafeFilter
 {
     public partial class Form1 : Form
     {
         private string SourceFilePath;
-        private readonly NSFWCensorService _NSFWcensorService;
-        private readonly NSFWCensorService _SFWcensorService;
+        //private readonly NSFWCensorService _NSFWcensorService;
+        private readonly NSFWCensorService _FullCensorService;
         private readonly string _ProjectRoot = Environment.CurrentDirectory;
+        private readonly string _FullModel = "YOLOV26FULLV4.onnx";
+        private CaptureOverlay? _overlay;
 
         //settings
         private List<string> _CensorsList = new List<string>();
@@ -20,8 +24,6 @@ namespace BetaSafeFilter
 
         public Form1()
         {
-
-
             InitializeComponent();
 
             for (int i = 0; i < CensorsChecklist.Items.Count; i++)
@@ -37,14 +39,9 @@ namespace BetaSafeFilter
             PixelLabel.Text = PixelationDensity.Value.ToString();
 
             //_censorService = new NSFWCensorService(@"erax_nsfw_yolo11m.onnx", 0.20);
-            _NSFWcensorService = new NSFWCensorService(@"erax_nsfw_yolo11m.onnx", .20);
-            _SFWcensorService = new NSFWCensorService(@"YOLO26SFWV2.onnx", .20);
+            //_NSFWcensorService = new NSFWCensorService(@"erax_nsfw_yolo11m.onnx", .20);
+            _FullCensorService = new NSFWCensorService(_FullModel, .20);
             _ProjectRoot = Environment.CurrentDirectory;
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
         }
 
         private void UploadButton_Click(object sender, EventArgs e)
@@ -78,11 +75,11 @@ namespace BetaSafeFilter
             }
 
             //Debug.WriteLine(string.Join(",",_CensorsList));
-            Bitmap ImageFile = new Bitmap(SourceFilePath); 
+            Bitmap ImageFile = new Bitmap(SourceFilePath);
             CensorButton.Enabled = false;
             CensorImg.Image?.Dispose();
 
-            ImageFile = _SFWcensorService.CensorImage(ImageFile, _Option, censorType: _CensorType,Categories: _CensorsList);
+            ImageFile = _FullCensorService.CensorImage(ImageFile, _Option, censorType: _CensorType, Categories: _CensorsList, k: 1);
 
             CensorImg.Image = ImageFile;
             CensorImg.AccessibleName = "File Loaded";
@@ -94,7 +91,7 @@ namespace BetaSafeFilter
             using (OpenFileDialog OFD = new OpenFileDialog()) //Standard Open File Dialog Box, Using means that memory is freed up after uploading
             {
                 OFD.Title = "Select an Video";
-                OFD.Filter = "Video Files (*.mp4)|*.mp4";
+                OFD.Filter = "Video Files (*.mp4;*.mov)|*.mp4;*.mov";
                 OFD.Multiselect = false;
 
                 if (OFD.ShowDialog() == DialogResult.OK)
@@ -160,11 +157,11 @@ namespace BetaSafeFilter
             {
                 try
                 {
-                  
-                    _SFWcensorService.CensorVideoFast(
+
+                    _FullCensorService.CensorVideoFast(
                         SourceFilePath, VideoPath, _Option,
                         censorType: _CensorType,
-                        progressCallback: AppendProgress,Categories: _CensorsList);
+                        progressCallback: AppendProgress, Categories: _CensorsList);
 
 
                     // Completion message must also be marshaled
@@ -266,11 +263,13 @@ namespace BetaSafeFilter
 
                 // Optional: Customize the dialog text
                 saveFileDialog.Title = "Select the Location where you want to save Photo:";
-                saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                saveFileDialog.Filter = "Image Files (*.jpg; *.jpeg; *.png; *.bmp; *.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif";
+                saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                saveFileDialog.Filter = "PNG Files (*.png)|*.png";
                 saveFileDialog.FileName = $"{System.IO.Path.GetFileNameWithoutExtension(SourceFilePath)} CENSORED";
                 saveFileDialog.FilterIndex = 1;
-                saveFileDialog.RestoreDirectory = true;
+                saveFileDialog.AddExtension = true;
+                saveFileDialog.DefaultExt = "png";
+                //saveFileDialog.RestoreDirectory = true;
 
                 // Optional: Set a default starting directory
                 //folderBrowser.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -283,7 +282,7 @@ namespace BetaSafeFilter
 
                     // Display it in your TextBox
                     //txtSaveLocation.Text = selectedPath;
-                    CensorImg.Image.Save(SelectedPath);
+                    CensorImg.Image.Save(SelectedPath, System.Drawing.Imaging.ImageFormat.Png);
                 }
                 else
                 {
@@ -299,6 +298,27 @@ namespace BetaSafeFilter
 
         }
 
+        private async void RTCButton_Click(object sender, EventArgs e)
+        {
+            Screen Target;
+            //Start by selecting screen
+            if (Screen.AllScreens.Length == 1)
+            {
+                Target = Screen.AllScreens[0]; 
+                return;
+            }
+                using var picker = new MonitorPickerForm();
+            if (picker.ShowDialog() != DialogResult.OK) return;
 
+            Target= picker.ScreenSelection;
+
+            _overlay?.Close();
+            _overlay?.Dispose();
+
+            _overlay = new CaptureOverlay(Target);
+            _overlay.Show();
+
+            RealtimeCensorship.StartCaptureOnScreen(Target, _overlay,new NsfwAnalyzer(_FullModel));
+        }
     }
 }

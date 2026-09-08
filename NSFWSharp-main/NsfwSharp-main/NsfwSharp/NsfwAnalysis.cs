@@ -13,12 +13,14 @@ namespace NsfwSharp
         public List<SKRectI> BoundingBoxes { get; private set; }
 
         
-        public NsfwAnalysis(bool isNsfw, NsfwDetection[] detections, SKImage originalImage, SKImage detectionsImage, List<SKRectI> boundingbox)
+        //public NsfwAnalysis(bool isNsfw, NsfwDetection[] detections, SKImage originalImage, SKImage detectionsImage, List<SKRectI> boundingbox)
+        public NsfwAnalysis(bool isNsfw, NsfwDetection[] detections, List<SKRectI> boundingbox)
+
         {
             IsNsfw = isNsfw; //boolean that tells whether or not the  image is NSFW
             Detections = detections; //I dont know
-            OriginalImage = originalImage; //The origional Image
-            DetectionsImage = detectionsImage; //The image with boxes around the detections (Not censored)
+            //OriginalImage = originalImage; //The origional Image
+            //DetectionsImage = detectionsImage; //The image with boxes around the detections (Not censored)
             BoundingBoxes = boundingbox; //Useful Boxes for censorship
         }
     }

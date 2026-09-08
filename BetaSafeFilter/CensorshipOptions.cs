@@ -51,5 +51,7 @@ namespace BetaSafeFilter
         {
             this.TVstatic = TVstatic;
         }
+
+
     }
 }

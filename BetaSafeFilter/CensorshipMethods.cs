@@ -11,6 +11,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
+
+
 namespace BetaSafeFilter
 {
 
@@ -48,24 +50,16 @@ namespace BetaSafeFilter
             using Bitmap AnalysisFrame = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(Frame);
 
             NsfwAnalysis analysis = _analyzer.GetNsfwAnalysis(AnalysisFrame,Categories);
-            Mat analysisMat;
             
             if (AnalysisScale < 1.0)  //make image smaller so analysis can be done faster
             {
                 int analysisWidth = Math.Max(1, (int)(Frame.Width * AnalysisScale));
                 int analysisHeight = Math.Max(1, (int)(Frame.Height * AnalysisScale));
-
-                analysisMat = new Mat();
-
                 Cv2.Resize(
                     Frame,
-                    analysisMat,
+                    new Mat(),
                     new OpenCvSharp.Size(analysisWidth, analysisHeight)
                     );
-            }
-            else
-            {
-                analysisMat = Frame;
             }
 
             foreach (SKRectI blur in analysis.BoundingBoxes)
@@ -95,7 +89,7 @@ namespace BetaSafeFilter
             using (Mat boop2 = OpenCvSharp.Extensions.BitmapConverter.ToMat(ImagePath))
             {
                 CensorMatInPlace(boop2, Option,k, censorType,Categories:Categories);
-                
+
                 return OpenCvSharp.Extensions.BitmapConverter.ToBitmap(boop2);
             }
 
@@ -240,11 +234,23 @@ namespace BetaSafeFilter
                 {
                     case CensorType.GaussianBlur:
                         Cv2.Rectangle(Image, Zone, Scalar.Lime, 2);
-                        Cv2.GaussianBlur(Region, Region, new OpenCvSharp.Size(Option.GaussianBlurFactor, Option.GaussianBlurFactor), 0);
+
+
+                        int BlurFactor;
+                        if (Option.GaussianBlurFactor% 2 == 0) { BlurFactor = Option.GaussianBlurFactor+ 1; }
+
+                        else
+                            BlurFactor = Option.GaussianBlurFactor;
+                        Cv2.GaussianBlur(Region, Region, new OpenCvSharp.Size(BlurFactor, BlurFactor), 0);
                         break;
                     case CensorType.Pixelate:
                         // Define the size of the pixel blocks (larger number = more pixelated)
-                        int pixelSize = Option.PixelateFactor;
+                        int pixelSize;
+
+                        if (Option.PixelateFactor % 2 == 0) { pixelSize = Option.PixelateFactor + 1; }
+
+                        else
+                            pixelSize = Option.PixelateFactor;
 
                         // Calculate temporary tiny dimensions (ensure they are at least 1 pixel)
                         int smallW = Math.Max(1, Region.Width / pixelSize);
