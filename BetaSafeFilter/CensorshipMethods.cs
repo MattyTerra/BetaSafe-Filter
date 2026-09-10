@@ -6,7 +6,7 @@ using OpenCvSharp.Extensions;
 using SkiaSharp;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing.Imaging;
+//using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
@@ -62,23 +62,23 @@ namespace BetaSafeFilter
                     );
             }
 
-            foreach (SKRectI blur in analysis.BoundingBoxes)
+
+            for (int i = 0; i< analysis.BoundingBoxes.Count; i++)
             {
-                Rect censorZone = new Rect
-                {
-                    X = (int)(blur.MidX - (blur.Width * k / 2.0)),
-                    Y = (int)(blur.MidY - (blur.Height * k / 2.0)),
-                    Width = (int)(blur.Width * k),
-                    Height = (int)(blur.Height * k)
-                };
 
-                censorZone = ClampRectToFrame(censorZone, Frame.Width, Frame.Height);
 
-                if (censorZone.Width <= 0 || censorZone.Height <= 0) //if theres nothing to censor, dont waste time applying a censor
-                    continue;
+                //analysis.BoundingBoxes[i]=ClampRectToFrame(analysis.BoundingBoxes[i], Frame.Width, Frame.Height);
+                var BlurRegion = analysis.BoundingBoxes[i];
+                //censorZone = ClampRectToFrame(censorZone, Frame.Width, Frame.Height);
+                float RotAngle = analysis.Detections[i].RotAngle;
+                Debug.WriteLine(RotAngle);
+
+                var Zone= new RotatedRect(new OpenCvSharp.Point(BlurRegion.MidX,BlurRegion.MidY),new OpenCvSharp.Size(BlurRegion.Width*k,BlurRegion.Height*k),RotAngle*180/float.Pi);
+
+                ApplyCensor(Frame, Zone,censorType,Option);
                 
-                ApplyCensor(Frame, censorZone, censorType,Option);
             }
+
         }
 
 
@@ -216,6 +216,7 @@ namespace BetaSafeFilter
 
         }
 
+
         private void ApplyCensor(Mat Image, Rect Zone, CensorType censorType, Options Option)
         {
             /* Summary:
@@ -225,6 +226,7 @@ namespace BetaSafeFilter
              * Currently contins Gaussian Blur, Pixelate, Censored Logo, and a solid color
              * 
              */
+
             try
             {
                 using Mat Region = new Mat(Image, Zone);
@@ -273,8 +275,20 @@ namespace BetaSafeFilter
                         //Make This Later
                         break;
                     case CensorType.SolidColor:
-                        Scalar chosenColor = new Scalar(Option.CensorColor.B, Option.CensorColor.G, Option.CensorColor.R, Option.CensorColor.A); ;
-                        Cv2.Rectangle(Image, Zone, chosenColor, Cv2.FILLED);
+                        var color = new Scalar(
+                                         Option.CensorColor.B,
+                                         Option.CensorColor.G,
+                                         Option.CensorColor.R);
+
+                        OpenCvSharp.Point[] fill =
+                            {
+                        new OpenCvSharp.Point(Zone.X, Zone.Y),
+                        new OpenCvSharp.Point(Zone.X + Zone.Width - 1, Zone.Y),
+                        new OpenCvSharp.Point(Zone.X + Zone.Width - 1, Zone.Y + Zone.Height - 1),
+                        new OpenCvSharp.Point(Zone.X, Zone.Y + Zone.Height - 1),
+                            };
+
+                        Cv2.FillConvexPoly(Image, fill, color);
                         break;
                     case CensorType.TVStatic:
 
@@ -300,6 +314,30 @@ namespace BetaSafeFilter
             }
             catch (Exception ex) { return; }
         }
+
+
+        private void ApplyCensor(Mat image, RotatedRect zone, CensorType censorType, Options option)
+        {
+            Point2f[] pts = Cv2.BoxPoints(zone);
+            OpenCvSharp.Point[] poly = pts.Select(p => new OpenCvSharp.Point((int)Math.Round(p.X), (int)Math.Round(p.Y))).ToArray();
+
+            Rect bounds = Cv2.BoundingRect(poly);
+            bounds = ClampRectToFrame(bounds, image.Width, image.Height);
+
+            using var roi = new Mat(image, bounds);
+            using var original = roi.Clone();
+
+            ApplyCensor(image, bounds, censorType, option);
+
+            using var keep = new Mat(bounds.Height, bounds.Width, MatType.CV_8UC1, Scalar.Black);
+            OpenCvSharp.Point[] local = poly.Select(p => new OpenCvSharp.Point(p.X - bounds.X, p.Y - bounds.Y)).ToArray();
+            Cv2.FillConvexPoly(keep, local, Scalar.White);
+
+            using var restore = new Mat();
+            Cv2.BitwiseNot(keep, restore);
+            original.CopyTo(roi, restore);
+        }
+
 
         public void ExtractFrames(string videoPath, string outputFolder = null)
         {

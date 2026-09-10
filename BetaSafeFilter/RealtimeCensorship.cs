@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Graphics.Capture;
@@ -28,8 +29,10 @@ namespace BetaSafeFilter
         private static CaptureOverlay? _overlay;
         private static IDirect3DDevice? _device;
         private static int _frameCount = 0;
-        private static NsfwAnalyzer _Analysizer;
+        private static NsfwAnalyzer? _Analysizer;
         private static int _busy= 0;
+
+        private static List<string>? _Censorlist = null;
 
         public static bool WGCworks()
         {
@@ -42,9 +45,10 @@ namespace BetaSafeFilter
 
 
         //This makes the code select which window or monitor the user wants to track for censorship purposes
-        public static Screen? StartCaptureOnScreen(Screen screen,CaptureOverlay overlay,NsfwAnalyzer Analyzer)
+        public static Screen? StartCaptureOnScreen(Screen screen,CaptureOverlay overlay,NsfwAnalyzer Analyzer,List<string> Censorslist)
         {
             _Analysizer= Analyzer;
+            _Censorlist = Censorslist;
             //start by making sure WGC is supported
             if (WGCworks() == false)
             {
@@ -108,8 +112,8 @@ namespace BetaSafeFilter
 
                 using var skImage = ConvertToSKImage(softwareBMP);
 
-                var filler = _Analysizer.GetNsfwAnalysis(skImage, null);
-                _overlay?.SetBoxes(filler.BoundingBoxes);
+                var filler = _Analysizer.GetNsfwAnalysis(skImage, _Censorlist);
+                _overlay?.SetBoxes(filler);
                 
                 //softwareBMP?.Dispose();
                 //skImage?.Dispose();
@@ -312,8 +316,19 @@ namespace BetaSafeFilter
 
         private static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint dwAffinity);
 
-        private readonly List<Rectangle> _boxes = new();
+        private readonly List<RotatedRect> _boxes = new();
         private readonly object _lock = new();
+
+
+        private static PointF[] ToPoints(RotatedRect box)
+        {
+            Point2f[] pts = Cv2.BoxPoints(box);
+            var result = new PointF[4];
+            for (int i = 0; i < 4; i++)
+                result[i] = new PointF(pts[i].X, pts[i].Y);
+            return result;
+        }
+
         protected override CreateParams CreateParams
         {
             get
@@ -366,21 +381,34 @@ namespace BetaSafeFilter
             bool ok = SetWindowDisplayAffinity(Handle, WDA_EXCLUDEFROMCAPTURE);
             Debug.WriteLine($"ExcludeFromCapture: {ok}");
         }
-        public void SetBoxes(List <SKRectI> BoundBoxes)
+        public void SetBoxes(NsfwAnalysis analysis)
         {
 
             if (IsDisposed) return;
 
             if (InvokeRequired)
             {
-                BeginInvoke(() => SetBoxes(BoundBoxes));
+                BeginInvoke(() => SetBoxes(analysis));
                 return;
             }
 
-            var CensorBoxes = new List<Rectangle>(BoundBoxes.Count);
-            foreach (SKRectI box in BoundBoxes)
-            {
-                CensorBoxes.Add(new Rectangle((int)box.Left, (int)box.Top, (int)box.Width, (int)box.Height));
+            var CensorBoxes = new List<RotatedRect>(analysis.BoundingBoxes.Count);
+            for (int i = 0; i < analysis.BoundingBoxes.Count; i++) {
+                float theta;
+
+                if (analysis.Detections[i].RotAngle <= .035) theta = 0;
+
+                else theta = analysis.Detections[i].RotAngle;
+
+
+
+
+                RotatedRect Spunbox = new RotatedRect(
+                    new OpenCvSharp.Point2f(analysis.BoundingBoxes[i].MidX, analysis.BoundingBoxes[i].MidY),
+                    new OpenCvSharp.Size2f(analysis.BoundingBoxes[i].Width, analysis.BoundingBoxes[i].Height),
+                    theta * 180 / float.Pi);
+
+                CensorBoxes.Add(Spunbox);
             }
 
             lock (_lock)
@@ -393,23 +421,36 @@ namespace BetaSafeFilter
 
         public void ClearBoxes()
         {
-            SetBoxes(new List <SKRectI>());
+            if (IsDisposed) return;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(ClearBoxes);
+                return;
+            }
+
+            lock (_lock)
+            {
+                _boxes.Clear();
+            }
+            Invalidate();
         }
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.Clear(Color.Magenta);
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
 
             lock (_lock)
             {
                 using var brush = new SolidBrush(Color.Black);
                 foreach (var box in _boxes)
-                    e.Graphics.FillRectangle(brush, box);
+                    e.Graphics.FillPolygon(brush, ToPoints(box));
             }
         }
 
+
     }
 
-    
 
     internal static class MonitorInterop
     {

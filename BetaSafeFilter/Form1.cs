@@ -14,7 +14,7 @@ namespace BetaSafeFilter
         //private readonly NSFWCensorService _NSFWcensorService;
         private readonly NSFWCensorService _FullCensorService;
         private readonly string _ProjectRoot = Environment.CurrentDirectory;
-        private readonly string _FullModel = "YOLOV26FULLV4.onnx";
+        private readonly string _FullModel = "YOLOV26OBBV1.onnx";
         private CaptureOverlay? _overlay;
 
         //settings
@@ -318,7 +318,7 @@ namespace BetaSafeFilter
             _overlay = new CaptureOverlay(Target);
             _overlay.Show();
 
-            RealtimeCensorship.StartCaptureOnScreen(Target, _overlay,new NsfwAnalyzer(_FullModel));
+            RealtimeCensorship.StartCaptureOnScreen(Target, _overlay,new NsfwAnalyzer(_FullModel),_CensorsList);
         }
     }
 }

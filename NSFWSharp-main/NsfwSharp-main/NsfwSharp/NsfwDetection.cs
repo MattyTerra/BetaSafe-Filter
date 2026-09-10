@@ -3,9 +3,12 @@
     public string Name { get; private set; }
     public double Confidence { get; private set; }
 
-    public NsfwDetection(string name, double confidence)
+    public float RotAngle { get; private set; }
+
+    public NsfwDetection(string name, double confidence, float rotangle=0)
     {
         Name = name;
         Confidence = confidence;
+        RotAngle= rotangle;
     }
 }

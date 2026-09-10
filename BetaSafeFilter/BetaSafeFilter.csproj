@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="erax_nsfw_yolo11m.onnx">
+    <None Update="Old_Models\erax_nsfw_yolo11m.onnx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="SFWCensor.onnx">
@@ -41,10 +41,10 @@
     <None Update="Old_Models\YOLO26SFWV2.onnx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="YOLOV26FullV3.onnx">
+    <None Update="YOLOV26FULLV4.onnx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="YOLOV26FULLV4.onnx">
+    <None Update="YOLOV26OBBV1.onnx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="yolov8s-pose.onnx">

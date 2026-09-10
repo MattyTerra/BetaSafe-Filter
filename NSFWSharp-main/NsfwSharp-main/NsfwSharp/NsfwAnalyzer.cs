@@ -40,7 +40,7 @@ namespace NsfwSharp
 
         }
 
-        public NsfwAnalysis GetNsfwAnalysis(Bitmap BitmapImage, List<string> Categories)
+        public NsfwAnalysis GetNsfwAnalysis(Bitmap BitmapImage, List<string>? Categories)
         {
             using (var ms = new MemoryStream())
             {
@@ -54,7 +54,7 @@ namespace NsfwSharp
             }
         }
 
-        public NsfwAnalysis GetNsfwAnalysis(string imagePath, List<string> Categories)
+        public NsfwAnalysis GetNsfwAnalysis(string imagePath, List<string>? Categories)
         {
             return GetNsfwAnalysis(SKImage.FromEncodedData(imagePath), Categories);
         }
@@ -64,24 +64,25 @@ namespace NsfwSharp
             return GetNsfwAnalysis(SKImage.FromEncodedData(imageData), Categories);
         }
 
-        public NsfwAnalysis GetNsfwAnalysis(SKImage image, List<string> Categories)
+        public NsfwAnalysis GetNsfwAnalysis(SKImage image, List<string>? Categories)
         {
-            Categories ??= ["TEST"];  //todo make this not so janky
-            List<ObjectDetection>? results = _yolo.RunObjectDetection(image, confidence: this.ConfidenceThreshold, iou: 0.7);
+            //Categories ??= ["TEST"];  //todo make this not so janky
+            List<OBBDetection>? results = _yolo.RunObbDetection(image, confidence: this.ConfidenceThreshold, iou: 0.7);
             
             var  detections = new List<NsfwDetection>();
             var boxes = new List<SKRectI>();
 
           
 
-            foreach (ObjectDetection objectDetection in results)
+            foreach (OBBDetection ObbDetection in results)
             {
-                if (Categories[0] == "TEST" || Categories.Contains(objectDetection.Label.Name.ToUpper())){
+                if (Categories == null || Categories.Contains(ObbDetection.Label.Name.ToUpper())){
                     detections.Add(new NsfwDetection(
-                        objectDetection.Label.Name.Substring(0, 1).ToUpper() + 
-                        objectDetection.Label.Name.Substring(1).ToLower(), 
-                        objectDetection.Confidence));
-                    boxes.Add(objectDetection.BoundingBox);
+                        ObbDetection.Label.Name.Substring(0, 1).ToUpper() + 
+                        ObbDetection.Label.Name.Substring(1).ToLower(), 
+                        ObbDetection.Confidence,ObbDetection.OrientationAngle));
+                    boxes.Add(ObbDetection.BoundingBox);
+
                 }
             }
             image.Dispose();
